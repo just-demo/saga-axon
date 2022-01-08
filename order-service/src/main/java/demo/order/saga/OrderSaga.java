@@ -24,7 +24,9 @@ import demo.payment.api.PayOrderCommand;
 import demo.shipment.api.CancelShipmentCommand;
 import demo.shipment.api.ShipOrderCommand;
 import demo.shipment.api.ShipmentStatusUpdatedEvent;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 @Saga
 public class OrderSaga {
 
@@ -45,6 +47,7 @@ public class OrderSaga {
   @StartSaga
   @SagaEventHandler(associationProperty = ASSOCIATION_ORDER_ID)
   public void on(OrderConfirmedEvent event, DeadlineManager deadlineManager, IdFactory idFactory) {
+    log.info("Order confirmed: {}", event);
     orderId = event.getOrderId();
 
     //Send a command to paid to get the order paid. Associate this Saga with the payment Id used.
@@ -64,6 +67,7 @@ public class OrderSaga {
 
   @SagaEventHandler(associationProperty = ASSOCIATION_PAYMENT_ID)
   public void on(OrderPaidEvent event, DeadlineManager deadlineManager) {
+    log.info("Order paid: {}", event);
     orderPaid = true;
     if (orderDelivered) {
       completeOrderProcess(deadlineManager);
@@ -72,6 +76,7 @@ public class OrderSaga {
 
   @SagaEventHandler(associationProperty = ASSOCIATION_PAYMENT_ID)
   public void on(OrderPaymentCancelledEvent event, DeadlineManager deadlineManager) {
+    log.info("Order payment cancelled: {}", event);
     // Cancel the shipment and update the Order
     commandGateway.send(new CancelShipmentCommand(shipmentId));
     completeOrderProcess(deadlineManager);
@@ -79,6 +84,7 @@ public class OrderSaga {
 
   @SagaEventHandler(associationProperty = ASSOCIATION_SHIPMENT_ID)
   public void on(ShipmentStatusUpdatedEvent event, DeadlineManager deadlineManager) {
+    log.info("Order shipment status updated: {}", event);
     orderDelivered = DELIVERED.equals(event.getShipmentStatus());
     if (orderPaid && orderDelivered) {
       completeOrderProcess(deadlineManager);
@@ -88,6 +94,7 @@ public class OrderSaga {
   @DeadlineHandler(deadlineName = ORDER_COMPLETE_DEADLINE)
   @EndSaga
   public void on() {
+    log.info("Order completed");
     commandGateway.send(new CompleteOrderProcessCommand(orderId, orderPaid, orderDelivered));
   }
 

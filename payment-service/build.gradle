@@ -1,0 +1,7 @@
+dependencies {
+    implementation project(":payment-api")
+
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "io.springfox:springfox-boot-starter:${springfoxVersion}"
+    implementation "org.axonframework:axon-spring-boot-starter:${axonVersion}"
+}
