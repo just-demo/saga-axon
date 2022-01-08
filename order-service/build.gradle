@@ -1,0 +1,12 @@
+dependencies {
+    implementation project(":order-api")
+    implementation project(":payment-api")
+    implementation project(":shipment-api")
+
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "io.springfox:springfox-boot-starter:${springfoxVersion}"
+    implementation "org.axonframework:axon-spring-boot-starter:${axonVersion}"
+
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.axonframework:axon-test:${axonVersion}"
+}

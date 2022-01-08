@@ -1,0 +1,31 @@
+plugins {
+    // spring boot 2.6.2 has an issue with springfox: https://stackoverflow.com/questions/70036953/springboot-2-6-0-spring-fox-3-failed-to-start-bean-documentationpluginsboot/70037507#70037507
+    id 'org.springframework.boot' version '2.5.8'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'io.freefair.lombok' version '6.3.0'
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'io.freefair.lombok'
+
+    group = 'demo'
+    version = '0.0.1-SNAPSHOT'
+    sourceCompatibility = '11'
+
+    ext {
+        springfoxVersion = '3.0.0'
+        // axon 4.5.4 - 4.5.6 has an issue https://discuss.axoniq.io/t/getting-xstream-dependency-exception/3634
+        axonVersion = '4.5.5'
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+}
