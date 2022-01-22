@@ -1,5 +1,5 @@
 dependencies {
-    implementation "org.axonframework:axon-modelling:${axonVersion}"
+    implementation "org.axonframework:axon-modelling:$axonVersion"
 }
 
 bootJar {

@@ -1,7 +1,0 @@
-dependencies {
-    implementation "org.axonframework:axon-modelling:${axonVersion}"
-}
-
-bootJar {
-    enabled = false
-}
