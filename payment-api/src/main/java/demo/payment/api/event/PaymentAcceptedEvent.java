@@ -8,5 +8,4 @@ import lombok.Value;
 public class PaymentAcceptedEvent {
 
   UUID paymentId;
-  UUID orderId;
 }

@@ -1,6 +1,8 @@
 package demo.order.saga;
 
+import static java.math.BigDecimal.ONE;
 import static java.util.UUID.randomUUID;
+import static org.axonframework.modelling.saga.SagaLifecycle.associateWith;
 
 import java.util.UUID;
 
@@ -16,7 +18,7 @@ import demo.order.api.command.RejectOrderCommand;
 import demo.order.api.event.OrderApprovedEvent;
 import demo.order.api.event.OrderCreatedEvent;
 import demo.order.api.event.OrderRejectedEvent;
-import demo.payment.api.command.PayOrderCommand;
+import demo.payment.api.command.ProcessPaymentCommand;
 import demo.payment.api.event.PaymentAcceptedEvent;
 import demo.payment.api.event.PaymentRejectedEvent;
 import demo.product.api.command.CancelProductReservationCommand;
@@ -36,11 +38,12 @@ public class OrderSaga {
 
   private UUID orderId;
   private UUID productId;
+  private UUID paymentId;
   private String reason;
 
   @StartSaga
   @SagaEventHandler(associationProperty = "orderId")
-  public void on(OrderCreatedEvent event, CommandGateway commandGateway2) {
+  public void on(OrderCreatedEvent event) {
     log.info("Order created: {}", event);
     log.info("Saga started: {}", event);
     orderId = event.getOrderId();
@@ -51,12 +54,15 @@ public class OrderSaga {
   @SagaEventHandler(associationProperty = "orderId")
   public void on(ProductReservedEvent event) {
     log.info("Product reserved: {}", event);
-    commandGateway.send(new PayOrderCommand(randomUUID(), orderId));
+    UUID paymentId = randomUUID();
+    associateWith("paymentId", paymentId.toString());
+    commandGateway.send(new ProcessPaymentCommand(paymentId, ONE));
   }
 
-  @SagaEventHandler(associationProperty = "orderId")
+  @SagaEventHandler(associationProperty = "paymentId")
   public void on(PaymentAcceptedEvent event) {
     log.info("Payment accepted: {}", event);
+    paymentId = event.getPaymentId();
     commandGateway.send(new ApproveOrderCommand(orderId));
   }
 
@@ -67,9 +73,10 @@ public class OrderSaga {
     commandGateway.send(new RejectOrderCommand(orderId, reason));
   }
 
-  @SagaEventHandler(associationProperty = "orderId")
+  @SagaEventHandler(associationProperty = "paymentId")
   public void on(PaymentRejectedEvent event) {
     log.info("Payment rejected: {}", event);
+    paymentId = event.getPaymentId();
     reason = event.getReason();
     commandGateway.send(new CancelProductReservationCommand(productId, orderId));
   }

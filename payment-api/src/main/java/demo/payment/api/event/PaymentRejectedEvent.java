@@ -8,6 +8,5 @@ import lombok.Value;
 public class PaymentRejectedEvent {
 
   UUID paymentId;
-  UUID orderId;
   String reason;
 }

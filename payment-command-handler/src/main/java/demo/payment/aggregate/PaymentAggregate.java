@@ -9,7 +9,7 @@ import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.spring.stereotype.Aggregate;
 
-import demo.payment.api.command.PayOrderCommand;
+import demo.payment.api.command.ProcessPaymentCommand;
 import demo.payment.api.event.PaymentAcceptedEvent;
 import demo.payment.api.event.PaymentRejectedEvent;
 import demo.payment.service.PaymentService;
@@ -23,25 +23,17 @@ public class PaymentAggregate {
 
   @AggregateIdentifier
   private UUID paymentId;
-  private UUID orderId;
   private boolean paid;
   private String reason;
 
   @CommandHandler
-  public PaymentAggregate(PayOrderCommand command, PaymentService paymentService) {
-    log.info("Paying order: {}", command);
+  public PaymentAggregate(ProcessPaymentCommand command, PaymentService paymentService) {
+    log.info("Processing payment: {}", command);
     try {
-      paymentService.pay(
-          command.getPaymentId(),
-          command.getOrderId());
-      apply(new PaymentAcceptedEvent(
-          command.getPaymentId(),
-          command.getOrderId()));
+      paymentService.pay(command.getPaymentId(), command.getPrice());
+      apply(new PaymentAcceptedEvent(command.getPaymentId()));
     } catch (Exception e) {
-      apply(new PaymentRejectedEvent(
-          command.getPaymentId(),
-          command.getOrderId(),
-          e.getMessage()));
+      apply(new PaymentRejectedEvent(command.getPaymentId(), e.getMessage()));
     }
   }
 
@@ -49,7 +41,6 @@ public class PaymentAggregate {
   protected void on(PaymentAcceptedEvent event) {
     log.info("Payment accepted: {}", event);
     paymentId = event.getPaymentId();
-    orderId = event.getOrderId();
     paid = true;
   }
 
@@ -57,7 +48,6 @@ public class PaymentAggregate {
   protected void on(PaymentRejectedEvent event) {
     log.info("Payment rejected: {}", event);
     paymentId = event.getPaymentId();
-    orderId = event.getOrderId();
     paid = false;
     reason = event.getReason();
   }
